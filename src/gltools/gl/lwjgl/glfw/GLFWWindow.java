@@ -1,42 +1,45 @@
 package gltools.gl.lwjgl.glfw;
 
+import gltools.display.FileDropListener;
 import gltools.display.Monitor;
+import gltools.display.MoveListener;
 import gltools.display.ResizeListener;
 import gltools.display.Window;
+import gltools.display.WindowStateListener;
 import gltools.gl.lwjgl.LWJGLGL;
 import gltools.gl.lwjgl.LWJGLNativesLoader;
 
 import java.io.File;
-import java.util.ArrayList;
+import java.util.HashSet;
 
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GLContext;
 import org.lwjgl.system.MemoryUtil;
-import org.lwjgl.system.glfw.ErrorCallback;
 import org.lwjgl.system.glfw.GLFW;
 import org.lwjgl.system.glfw.WindowCallback;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 
 public class GLFWWindow implements Window {
-	private final static Logger logger = LoggerFactory.getLogger(GLFWWindow.class);
-	
-	private int m_width;
-	private int m_height;
-	private int m_x;
-	private int m_y;
+	private int m_width = 1;
+	private int m_height = 1;
+	private int m_x = 0;
+	private int m_y = 0;
 	
 	private long m_id = -1;
 	
-	private boolean m_fullscreen;
-	private boolean m_resizable;
+	private boolean m_fullscreen = false;
+	private boolean m_resizable = false;
+	private boolean m_visible = false;
 	
 	private String m_title;
 	
+	//Monitor for fullscreen
+	private GLFWMonitor m_monitor = null;
 	
-	private ArrayList<ResizeListener> m_resizeListeners = new ArrayList<ResizeListener>();
+	private HashSet<ResizeListener> m_resizeListeners = new HashSet<ResizeListener>();
+	private HashSet<FileDropListener> m_fileListeners = new HashSet<FileDropListener>();
+	private HashSet<MoveListener> m_moveListeners = new HashSet<MoveListener>();
+	private HashSet<WindowStateListener> m_stateListeners = new HashSet<WindowStateListener>();
 	
 	private GLFWKeyboard m_keyboard;
 	private GLFWMouse m_mouse;
@@ -46,10 +49,7 @@ public class GLFWWindow implements Window {
 	
 	static {
 		if (!LWJGLNativesLoader.isLoaded()) LWJGLNativesLoader.load(new File(System.getProperty("user.home") + "/.gltools/lwjgl"));
-		GLFW.glfwSetErrorCallback(ErrorCallback.Util.getDefault());
-		if (GLFW.glfwInit() != GL11.GL_TRUE) {
-			throw new IllegalStateException("Unable to initialize GLFW");
-		}
+		GLFWLoader.s_ensureIntialized();
 	}
 	
 	public GLFWWindow(int width, int height, String title) {
@@ -60,53 +60,152 @@ public class GLFWWindow implements Window {
 		m_keyboard = new GLFWKeyboard();
 		m_mouse = new GLFWMouse(this);
 	}
+	public GLFWWindow(int width, int height) {
+		this(width, height, "");
+	}
+	public GLFWWindow() {
+		m_keyboard = new GLFWKeyboard();
+		m_mouse = new GLFWMouse(this);
+	}
+
+	public long getID() { return m_id; }
 
 	@Override
 	public int getWidth() { return m_width; }
 	@Override
 	public int getHeight() { return m_height; }
-	
-	public long getID() { return m_id; }
-	
+	@Override
+	public int getX() { return m_x; }
+	@Override
+	public int getY() { return m_y; }
+	@Override
 	public LWJGLGL getGL() { return m_context; }
-	
+	@Override
 	public GLFWMouse getMouse() { return m_mouse; }
+	@Override
 	public GLFWKeyboard getKeyboard() { return m_keyboard; }
-
-	public void useFullscreen(boolean fullscreen) {
-		m_fullscreen = fullscreen;
+	@Override
+	public GLFWMonitorProvider getMonitorProvider() { return new GLFWMonitorProvider(); }
+	@Override
+	public boolean isResizable() { return m_resizable; }
+	@Override
+	public boolean isFullscreen() { return m_fullscreen; }
+	@Override
+	public boolean isVisible() { return m_visible; }
+	@Override
+	public boolean isInitialized() { return m_id != -1; }
+	@Override
+	public String getTitle() { return m_title; }
+	
+	
+	
+	@Override
+	public void useFullscreen(Monitor monitor) {
+		if (m_id != -1) throw new RuntimeException("Cannot set to fullscreen after init()");
+		if (!(monitor instanceof GLFWMonitor)) throw new RuntimeException("Not a GLFWMonitor");
+		m_monitor = (GLFWMonitor) monitor;
 	}
+	@Override
 	public void setResizable(boolean resizable) {
 		m_resizable = resizable;
+		if (m_id != -1) GLFW.glfwWindowHint(GLFW.GLFW_RESIZABLE,  m_resizable ? GL11.GL_TRUE : GL11.GL_FALSE);
 	}
-	
+	@Override
+	public void setVisible(boolean visible) {
+		m_visible = visible;
+		if (m_id != -1) {
+			if (visible) GLFW.glfwShowWindow(m_id);
+			else GLFW.glfwHideWindow(m_id);
+		}
+	}
+	@Override
 	public void setTitle(String title) { 
 		m_title = title;
+		if (m_id != -1) GLFW.glfwSetWindowTitle(m_id, m_title == null ? "" : m_title);
 	}
-	public String getTitle() {
-		return m_title;
+	@Override
+	public void setX(int x) {
+		if (m_x == x) return;
+		m_x = x;
+		GLFW.glfwSetWindowPos(m_id, m_x, m_y);
+		synchronized(m_moveListeners) {
+			for (MoveListener l : m_moveListeners) {
+				l.windowMoved(this, m_x, m_y);
+			}
+		}
+	}
+	@Override
+	public void setY(int y) {
+		if (m_y == y) return;
+		m_y = y;
+		GLFW.glfwSetWindowPos(m_id, m_x, m_y);
+		synchronized(m_moveListeners) {
+			for (MoveListener l : m_moveListeners) {
+				l.windowMoved(this, m_x, m_y);
+			}
+		}
+	}
+	@Override
+	public void setPosition(int x, int y) {
+		if (m_x == x && m_y == y) return;
+		m_x = x;
+		m_y = y;
+		GLFW.glfwSetWindowPos(m_id, m_x, m_y);
+		synchronized(m_moveListeners) {
+			for (MoveListener l : m_moveListeners) {
+				l.windowMoved(this, m_x, m_y);
+			}
+		}
 	}
 
-	public boolean initialized() { return m_id != -1; }
-	
+
+
 	@Override
 	public void addResizedListener(ResizeListener l) {
-		m_resizeListeners.add(l);
+		synchronized(m_resizeListeners) {
+			m_resizeListeners.add(l);
+		}
+	}
+	@Override
+	public void addFileDropListener(FileDropListener l) {
+		synchronized(m_fileListeners) {
+			m_fileListeners.add(l);
+		}
+	}
+	@Override
+	public void addMoveListener(MoveListener l) {
+		synchronized(m_moveListeners) {
+			m_moveListeners.add(l);
+		}
+	}
+	@Override
+	public void addStateListener(WindowStateListener l) {
+		synchronized(m_stateListeners) {
+			m_stateListeners.add(l);
+		}
 	}
 	
 	@Override
-	public void init(Monitor monitor) {
+	public void init() {
 		GLFW.glfwDefaultWindowHints();
-		GLFW.glfwWindowHint(GLFW.GLFW_VISIBLE, GL11.GL_TRUE);
 		GLFW.glfwWindowHint(GLFW.GLFW_RESIZABLE,  m_resizable ? GL11.GL_TRUE : GL11.GL_FALSE);
+		
+		long monitor = m_monitor == null ? MemoryUtil.NULL : m_monitor.getID();
+		
 		if (m_title == null) m_title = "";
-		m_id = GLFW.glfwCreateWindow(m_width, m_height, m_title, MemoryUtil.NULL, MemoryUtil.NULL);
+		m_id = GLFW.glfwCreateWindow(m_width, m_height, m_title, monitor, MemoryUtil.NULL);
 		if (m_id == MemoryUtil.NULL) throw new RuntimeException("Failed to create window");
 		
 		WindowCallback.set(m_id, new WindowCallback() {
 			@Override
 			public void windowPos(long window, int xpos, int ypos) {
-				GLFWUtils.printEvent(window, "moved to %d, %d", xpos, ypos);
+				m_x = xpos;
+				m_y = ypos;
+				synchronized(m_moveListeners) {
+					for (MoveListener l : m_moveListeners) {
+						l.windowMoved(GLFWWindow.this, m_x, m_y);
+					}
+				}
 			}
 
 			@Override
@@ -114,35 +213,53 @@ public class GLFWWindow implements Window {
 				//On resize
 				m_width = width;
 				m_height = height;
-				for (ResizeListener rl : m_resizeListeners) {
-					rl.onResize(width, height);
+				synchronized(m_resizeListeners) {
+					for (ResizeListener rl : m_resizeListeners) {
+						rl.onResize(width, height);
+					}
 				}
 			}
 
 			@Override
 			public void windowClose(long window) {
-				GLFWUtils.printEvent(window, "closed");
+				synchronized(m_stateListeners) {
+					for (WindowStateListener l : m_stateListeners) {
+						l.windowClosed(GLFWWindow.this);
+					}
+				}
 			}
 
 			@Override
 			public void windowRefresh(long window) {
-				//GLFWUtils.printEvent(window, "refreshed");
+				synchronized(m_stateListeners) {
+					for (WindowStateListener l : m_stateListeners) {
+						l.windowRefresh(GLFWWindow.this);
+					}
+				}
 			}
 
 			@Override
 			public void windowFocus(long window, int focused) {
-				//GLFWUtils.printEvent(window, focused == 0 ? "lost focus" : "gained focus");
+				synchronized(m_stateListeners) {
+					for (WindowStateListener l : m_stateListeners) {
+						if (focused != 0 ) l.windowFocused(GLFWWindow.this);
+						else l.windowUnfocused(GLFWWindow.this);
+					}
+				}
 			}
 
 			@Override
 			public void windowIconify(long window, int iconified) {
-				//GLFWUtils.printEvent(window, iconified == 0 ? "restored" : "iconified");
+				synchronized(m_stateListeners) {
+					for (WindowStateListener l : m_stateListeners) {
+						if (iconified != 0 ) l.windowMaximized(GLFWWindow.this);
+						else l.windowMinimized(GLFWWindow.this);
+					}
+				}				
 			}
 
 			@Override
-			public void framebufferSize(long window, int width, int height) {
-				//GLFWUtils.printEvent(window, "framebuffer resized to %d x %d", width, height);
-			}
+			public void framebufferSize(long window, int width, int height) {}
 
 			@Override
 			public void key(long window, int key, int scancode, int action, int mods) {
@@ -155,8 +272,7 @@ public class GLFWWindow implements Window {
 			}
 
 			@Override
-			public void charMods(long window, int codepoint, int mods) {
-			}
+			public void charMods(long window, int codepoint, int mods) {}
 
 			@Override
 			public void mouseButton(long window, int button, int action, int mods) {
@@ -180,22 +296,29 @@ public class GLFWWindow implements Window {
 
 			@Override
 			public void drop(long window, int count, long names) {
-				GLFWUtils.printEvent(window, "drop %d file%s", count, count == 1 ? "" : "s");
+				File[] files = new File[count];
 
 				PointerBuffer nameBuffer = MemoryUtil.memPointerBuffer(names, count);
 				for ( int i = 0; i < count; i++ ) {
-					System.out.format("\t%d: %s%n", i + 1, MemoryUtil.memDecodeUTF8(MemoryUtil.memByteBufferNT1(nameBuffer.get(i))));
+					String filePath = MemoryUtil.memDecodeUTF8(MemoryUtil.memByteBufferNT1(nameBuffer.get(i)));
+					files[i] = new File(filePath);
+				}
+				synchronized(m_fileListeners) {
+					for (FileDropListener l : m_fileListeners) {
+						l.filesDropped(GLFWWindow.this, files);
+					}
 				}
 			}
 		});
 		
 		GLFW.glfwMakeContextCurrent(m_id);
-		m_context = new LWJGLGL();
+		m_context = new LWJGLGL(this);
 		m_context.init();
 		GLFW.glfwSwapInterval(1);
-		GLFW.glfwShowWindow(m_id);
+		
+		m_visible = true;
 	}
-
+	
 	@Override
 	public void destroy() {
 		GLFW.glfwDestroyWindow(m_id);
@@ -206,6 +329,10 @@ public class GLFWWindow implements Window {
 		return GLFW.glfwWindowShouldClose(m_id) == GL11.GL_TRUE;
 	}
 
+	public void makeCurrent() {
+		GLFW.glfwMakeContextCurrent(m_id);
+	}
+	
 	@Override
 	public void update() {
 		GLFW.glfwPollEvents();

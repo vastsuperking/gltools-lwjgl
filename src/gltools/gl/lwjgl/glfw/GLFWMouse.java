@@ -21,12 +21,12 @@ public class GLFWMouse extends Mouse {
 	}
 
 	public void setGrabbed(boolean grabbed) {
-		if (!m_window.initialized()) throw new RuntimeException("Window not initialized");
+		if (!m_window.isInitialized()) throw new RuntimeException("Window not initialized");
 		if (grabbed) GLFW.glfwSetInputMode(m_window.getID(), GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_DISABLED);
 		else GLFW.glfwSetInputMode(m_window.getID(), GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_NORMAL);
 	}
 	public void setHidden(boolean hidden) {
-		if (!m_window.initialized()) throw new RuntimeException("Window not initialized");
+		if (!m_window.isInitialized()) throw new RuntimeException("Window not initialized");
 		if (hidden) GLFW.glfwSetInputMode(m_window.getID(), GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_HIDDEN);
 		else GLFW.glfwSetInputMode(m_window.getID(), GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_NORMAL);
 	}
