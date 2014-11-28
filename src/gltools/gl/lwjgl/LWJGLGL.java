@@ -11,20 +11,10 @@ import java.io.File;
 
 import org.lwjgl.opengl.GLContext;
 
-public class LWJGLGL implements GL {
+public class LWJGLGL extends LWJGLGL4 implements GL {
 	private GLContext m_context;
 	
-	private LWJGLGL1 m_GL1;
-	private LWJGLGL2 m_GL2;
-	private LWJGLGL3 m_GL3;
-	private LWJGLGL4 m_GL4;
-
-	public LWJGLGL() {
-		m_GL1 = new LWJGLGL1();
-		m_GL2 = new LWJGLGL2();
-		m_GL3 = new LWJGLGL3();
-		m_GL4 = new LWJGLGL4();
-	}
+	public LWJGLGL() {}
 	
 	public void init() {
 		if (!LWJGLNativesLoader.isLoaded()) LWJGLNativesLoader.load(new File(System.getProperty("user.home") + "/.gltools/lwjgl"));
@@ -42,22 +32,22 @@ public class LWJGLGL implements GL {
 
 	@Override
 	public GL1 getGL1() {
-		return m_GL1;
+		return this;
 	}
 
 	@Override
 	public GL2 getGL2() {
-		return m_GL2;
+		return this;
 	}
 
 	@Override
 	public GL3 getGL3() {
-		return m_GL3;
+		return this;
 	}
 
 	@Override
 	public GL4 getGL4() {
-		return m_GL4;
+		return this;
 	}
 	
 }
