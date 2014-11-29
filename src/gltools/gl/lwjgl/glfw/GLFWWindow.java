@@ -157,6 +157,19 @@ public class GLFWWindow implements Window {
 			}
 		}
 	}
+	@Override
+	public void setSize(int width, int height) {
+		m_width = width;
+		m_height = height;
+		if (m_id != -1) {
+			GLFW.glfwSetWindowSize(m_id, width, height);
+			synchronized(m_resizeListeners) {
+				for (ResizeListener rl : m_resizeListeners) {
+					rl.onResize(width, height);
+				}
+			}
+		}
+	}
 
 
 
@@ -311,10 +324,15 @@ public class GLFWWindow implements Window {
 			}
 		});
 		
-		GLFW.glfwMakeContextCurrent(m_id);
 		m_context = new LWJGLGL(this);
+		//Will call GLFW.glfwMakeContextCurrent()
 		m_context.init();
+
 		GLFW.glfwSwapInterval(1);
+		
+		//Init will make context current, so we want to release
+		//the context b/c the user doesn't expect init() to set the context
+		m_context.releaseCurrent();
 		
 		m_visible = true;
 	}
@@ -326,7 +344,8 @@ public class GLFWWindow implements Window {
 
 	@Override
 	public boolean closeRequested() {
-		return GLFW.glfwWindowShouldClose(m_id) == GL11.GL_TRUE;
+		if (m_id != -1) return GLFW.glfwWindowShouldClose(m_id) == GL11.GL_TRUE;
+		else return false;
 	}
 
 	public void makeCurrent() {
