@@ -333,7 +333,7 @@ public class GLFWWindow implements Window {
 		//Init will make context current, so we want to release
 		//the context b/c the user doesn't expect init() to set the context
 		m_context.releaseCurrent();
-		
+		System.out.println("Setting visible!");
 		m_visible = true;
 	}
 	
@@ -350,6 +350,9 @@ public class GLFWWindow implements Window {
 
 	public void makeCurrent() {
 		GLFW.glfwMakeContextCurrent(m_id);
+	}
+	public void releaseCurrent() {
+		GLFW.glfwMakeContextCurrent(MemoryUtil.NULL);
 	}
 	
 	@Override

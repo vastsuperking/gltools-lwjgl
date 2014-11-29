@@ -10,8 +10,6 @@ import gltools.gl.GLVersion;
 import gltools.gl.lwjgl.glfw.GLFWWindow;
 
 import java.io.File;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 import org.lwjgl.opengl.GLContext;
 
@@ -24,6 +22,8 @@ public class LWJGLGL extends LWJGLGL4 implements GL {
 	}
 	
 	public void init() {
+		if (!m_window.isInitialized())
+			throw new RuntimeException("Window not initialized!");
 		if (!LWJGLNativesLoader.isLoaded()) LWJGLNativesLoader.load(new File(System.getProperty("user.home") + "/.gltools/lwjgl"));
 		CurrentGL.s_makeCurrent(this);
 		m_window.makeCurrent();
@@ -35,10 +35,15 @@ public class LWJGLGL extends LWJGLGL4 implements GL {
 	}
 	
 	public void makeCurrent() {
+		if (!m_window.isInitialized())
+			throw new RuntimeException("Window not initialized!");
 		CurrentGL.s_makeCurrent(this);
 		m_window.makeCurrent();
+		org.lwjgl.opengl.GL.setCurrent(m_context);
 	}
 	public void releaseCurrent() {
+		m_window.releaseCurrent();
+		org.lwjgl.opengl.GL.setCurrent(null);
 		CurrentGL.s_releaseCurrent(this);
 	}
 	public boolean isCurrent() {
