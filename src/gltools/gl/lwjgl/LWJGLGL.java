@@ -18,7 +18,14 @@ public class LWJGLGL extends LWJGLGL4 implements GL {
 	private GLFWWindow m_window;
 	
 	public LWJGLGL(GLFWWindow window) {
+		//Super null and then override getContext() - cannot use this
+		super(null);
 		m_window = window;
+	}
+	
+	@Override
+	public LWJGLGL getContext() {
+		return this;
 	}
 	
 	public void init() {

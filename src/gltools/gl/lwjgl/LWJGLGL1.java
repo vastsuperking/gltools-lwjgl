@@ -2298,4 +2298,11 @@ public class LWJGLGL1 implements GL1 {
 	public boolean glUnmapBuffer(int target) {
 		return GL15.glUnmapBuffer(target);
 	}
+	public LWJGLGL m_gl;
+	public LWJGLGL1(LWJGLGL gl) {
+		m_gl = gl;
+	}
+	public LWJGLGL getContext() {
+		return m_gl;
+	}
 }

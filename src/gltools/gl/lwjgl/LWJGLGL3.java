@@ -971,4 +971,7 @@ public class LWJGLGL3 extends LWJGLGL2 implements GL3 {
 	public void glVertexP4ui(int type, int value) {
 		GL33.glVertexP4ui(type, value);
 	}
+	public LWJGLGL3(LWJGLGL gl) {
+		super(gl);
+	}
 }

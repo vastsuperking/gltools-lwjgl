@@ -1916,4 +1916,7 @@ public class LWJGLGL4 extends LWJGLGL3 implements GL4 {
 	public void glVertexArrayVertexBuffers(int vaobj, int first, int count, java.nio.ByteBuffer buffers, java.nio.ByteBuffer offsets, java.nio.ByteBuffer strides) {
 		GL45.glVertexArrayVertexBuffers(vaobj, first, count, buffers, offsets, strides);
 	}
+	public LWJGLGL4(LWJGLGL gl) {
+		super(gl);
+	}
 }

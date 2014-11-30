@@ -540,4 +540,7 @@ public class LWJGLGL2 extends LWJGLGL1 implements GL2 {
 	public void glUniformMatrix4x3f(int location, int count, boolean transpose, java.nio.ByteBuffer value) {
 		GL21.glUniformMatrix4x3f(location, count, transpose, value);
 	}
+	public LWJGLGL2(LWJGLGL gl) {
+		super(gl);
+	}
 }

@@ -265,8 +265,9 @@ public class GLFWWindow implements Window {
 			public void windowIconify(long window, int iconified) {
 				synchronized(m_stateListeners) {
 					for (WindowStateListener l : m_stateListeners) {
-						if (iconified != 0 ) l.windowMaximized(GLFWWindow.this);
-						else l.windowMinimized(GLFWWindow.this);
+						if (iconified != 0 ) {
+							l.windowMinimized(GLFWWindow.this);
+						}else l.windowMaximized(GLFWWindow.this);
 					}
 				}				
 			}
@@ -333,7 +334,6 @@ public class GLFWWindow implements Window {
 		//Init will make context current, so we want to release
 		//the context b/c the user doesn't expect init() to set the context
 		m_context.releaseCurrent();
-		System.out.println("Setting visible!");
 		m_visible = true;
 	}
 	
