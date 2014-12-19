@@ -1,7 +1,7 @@
 <xml>
 	<keys>
 		<key id="-1" name="UNKNOWN"/>
-		<key id="32" name="SPACE"/>
+		<key id="32" name="SPACE" char=" "/>
 		<key id="39" name="APOSTROPHE"/>
 		<key id="44" name="COMMA"/>
 		<key id="45" name="MINUS"/>
@@ -45,16 +45,16 @@
 		<key id="88" char="X"/>
 		<key id="89" char="Y"/>
 		<key id="90" char="Z"/>
-		<key id="91" name="LEFT_BRACKET"/>
+		<key id="91" name="LEFT_BRACKET" />
 		<key id="92" name="BACKSLASH"/>
 		<key id="93" name="RIGHT_BRACKET"/>
 		<key id="96" name="GRAVE_ACCENT"/>
 		<key id="161" name="WORLD_1"/>
 		<key id="162" name="WORLD_2"/>
 		<key id="256" name="ESCAPE"/>
-		<key id="257" name="ENTER"/>
+		<key id="257" name="ENTER" char="%n"/>
 		<key id="258" name="TAB"/>
-		<key id="259" name="BACKSPACE"/>
+		<key id="259" name="BACKSPACE" char="%b"/>
 		<key id="260" name="INSERT"/>
 		<key id="261" name="DELETE"/>
 		<key id="262" name="RIGHT"/>
@@ -112,11 +112,11 @@
 		<key id="334" name="KP_ADD"/>
 		<key id="335" name="KP_ENTER"/>
 		<key id="336" name="KP_EQUAL"/>
-		<key id="340" name="LEFT_SHIFT"/>
+		<key id="340" name="LEFT_SHIFT" isShift="true"/>
 		<key id="341" name="LEFT_CONTROL"/>
 		<key id="342" name="LEFT_ALT"/>
 		<key id="343" name="LEFT_SUPER"/>
-		<key id="344" name="RIGHT_SHIFT"/>
+		<key id="344" name="RIGHT_SHIFT" isShift="true"/>
 		<key id="345" name="RIGHT_CONTROL"/>
 		<key id="346" name="RIGHT_ALT"/>
 		<key id="347" name="RIGHT_SUPER"/>

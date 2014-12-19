@@ -1,14 +1,18 @@
 package gltools.gl.lwjgl.glfw;
 
+import glcommon.input.Keyboard;
 import glcommon.util.ResourceLocator.ClasspathResourceLocator;
-import gltools.input.Keyboard;
+import gltools.gl.GL1;
 
 import org.lwjgl.system.glfw.GLFW;
 
 public class GLFWKeyboard extends Keyboard {
 	private static String CONFIG_LOCATION = "Config/Keyboard/glfw_keys.xml";
 
-	protected GLFWKeyboard() {
+	private GLFWWindow m_window;
+	
+	protected GLFWKeyboard(GLFWWindow window) {
+		m_window = window;
 		try {
 			readXMLKeyConfig(CONFIG_LOCATION, new ClasspathResourceLocator());
 		} catch (Exception e) {
@@ -18,9 +22,7 @@ public class GLFWKeyboard extends Keyboard {
 
 	
 	@Override
-	public void poll() {
-		//Polling is done in the display
-	}
+	public void poll() {}
 	
 	protected void character(GLFWWindow window, char c) {}
 	protected void key(GLFWWindow window, int keycode, int scancode, 

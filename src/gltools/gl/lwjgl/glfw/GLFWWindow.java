@@ -57,14 +57,14 @@ public class GLFWWindow implements Window {
 		m_height = height;
 		m_title = title;
 
-		m_keyboard = new GLFWKeyboard();
+		m_keyboard = new GLFWKeyboard(this);
 		m_mouse = new GLFWMouse(this);
 	}
 	public GLFWWindow(int width, int height) {
 		this(width, height, "");
 	}
 	public GLFWWindow() {
-		m_keyboard = new GLFWKeyboard();
+		m_keyboard = new GLFWKeyboard(this);
 		m_mouse = new GLFWMouse(this);
 	}
 

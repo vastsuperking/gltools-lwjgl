@@ -1,6 +1,6 @@
 package gltools.gl.lwjgl.glfw;
 
-import gltools.input.Mouse;
+import glcommon.input.Mouse;
 
 import org.lwjgl.system.glfw.GLFW;
 
