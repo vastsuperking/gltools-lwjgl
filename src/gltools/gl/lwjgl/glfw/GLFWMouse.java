@@ -60,6 +60,6 @@ public class GLFWMouse extends Mouse {
 	}
 	
 	protected void scroll(GLFWWindow window, float x, float y) {
-		mouseScrolled(x, y);
+		mouseWheelMoved(x, y);
 	}
 }
