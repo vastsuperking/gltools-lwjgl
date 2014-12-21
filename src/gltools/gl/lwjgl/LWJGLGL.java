@@ -28,7 +28,10 @@ public class LWJGLGL extends LWJGLGL4 implements GL {
 		return this;
 	}
 	
+	public GLFWWindow getWindow() { return m_window; }
+	
 	public void init() {
+		
 		if (!m_window.isInitialized())
 			throw new RuntimeException("Window not initialized!");
 		if (!LWJGLNativesLoader.isLoaded()) LWJGLNativesLoader.load(new File(System.getProperty("user.home") + "/.gltools/lwjgl"));

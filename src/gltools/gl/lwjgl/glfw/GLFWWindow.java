@@ -6,6 +6,7 @@ import gltools.display.MoveListener;
 import gltools.display.ResizeListener;
 import gltools.display.Window;
 import gltools.display.WindowStateListener;
+import gltools.gl.GL1;
 import gltools.gl.lwjgl.LWJGLGL;
 import gltools.gl.lwjgl.LWJGLNativesLoader;
 
@@ -197,16 +198,20 @@ public class GLFWWindow implements Window {
 			m_stateListeners.add(l);
 		}
 	}
-	
 	@Override
 	public void init() {
+		init(null);
+	}
+	
+	public void init(GLFWWindow share) {
 		GLFW.glfwDefaultWindowHints();
 		GLFW.glfwWindowHint(GLFW.GLFW_RESIZABLE,  m_resizable ? GL11.GL_TRUE : GL11.GL_FALSE);
+		GLFW.glfwWindowHint(GLFW.GLFW_VISIBLE, m_visible ? GL1.GL_TRUE : GL1.GL_FALSE);
 		
 		long monitor = m_monitor == null ? MemoryUtil.NULL : m_monitor.getID();
 		
 		if (m_title == null) m_title = "";
-		m_id = GLFW.glfwCreateWindow(m_width, m_height, m_title, monitor, MemoryUtil.NULL);
+		m_id = GLFW.glfwCreateWindow(m_width, m_height, m_title, monitor, share == null ? MemoryUtil.NULL : share.getID());
 		if (m_id == MemoryUtil.NULL) throw new RuntimeException("Failed to create window");
 		
 		WindowCallback.set(m_id, new WindowCallback() {
